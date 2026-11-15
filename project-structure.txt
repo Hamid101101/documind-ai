@@ -1,0 +1,57 @@
+./
+│
+├── backend/
+│   └── app/
+│       ├── main.py
+│       ├── core/
+│       │   ├── config.py
+│       │   └── logging.py
+│       ├── api/v1/
+│       │   ├── documents.py
+│       │   ├── knowledge_bases.py
+│       │   ├── chat.py
+│       │   └── health.py
+│       ├── schemas/
+│       ├── services/
+│       └── dependencies/
+│
+├── ingestion/
+│   ├── loaders/
+│   ├── parsers/
+│   ├── cleaning/
+│   ├── chunking/
+│   ├── embeddings/
+│   └── pipeline.py
+│
+├── retrieval/
+│   ├── vector_search.py
+│   ├── filters.py
+│   ├── reranker.py
+│   └── context_builder.py
+│
+├── llm/
+│   ├── client.py
+│   ├── prompts/
+│   └── generation.py
+│
+├── database/
+│   ├── models/
+│   ├── repositories/
+│   └── migrations/
+│
+├── worker/
+│   ├── tasks.py
+│   └── celery_app.py
+│
+├── frontend/
+│   └── streamlit_app.py
+│
+├── evaluation/
+├── tests/
+├── infra/
+├── docs/
+│
+├── docker-compose.yml
+├── pyproject.toml
+├── .env.example
+└── README.md
