@@ -39,6 +39,23 @@ services:
     volumes:
       - minio_data:/data
 
+  
+  redis:
+    image: redis:7-alpine
+    container_name: documind-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - documind_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
 
 volumes:
   postgres_data:
@@ -46,3 +63,6 @@ volumes:
 
   minio_data:
     name: documind_minio_data
+
+  documind_redis_data:
+    name: documind_redis_data

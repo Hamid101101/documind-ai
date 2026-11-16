@@ -1,0 +1,131 @@
+documind-ai/
+├── backend
+│   └── app
+│       ├── api
+│       │   └── v1
+│       │       ├── chat.py
+│       │       ├── documents.py
+│       │       ├── health.py
+│       │       └── knowledge_bases.py
+│       ├── core
+│       │   ├── config.py
+│       │   └── logging.py
+│       ├── dependencies
+│       ├── schemas
+│       │   ├── __init__.py
+│       │   └── document.py
+│       ├── services
+│       │   ├── __init__.py
+│       │   └── document_service.py
+│       └── main.py
+├── build
+│   └── bdist.linux-x86_64
+├── database
+│   ├── migrations
+│   │   ├── 001_enable_pgvector.sql
+│   │   └── 002_create_document_tables.sql
+│   ├── models
+│   ├── repositories
+│   │   ├── __init__.py
+│   │   ├── chunk_repository.py
+│   │   └── document_repository.py
+│   └── migrations.py
+├── docs
+├── evaluation
+├── frontend
+│   └── streamlit_app.py
+├── infra
+│   ├── minio
+│   │   ├── policies
+│   │   │   └── documind-storage-policy.json
+│   │   └── init.sh
+│   ├── postgres
+│   │   ├── __init__.py
+│   │   └── postgres_client.py
+│   ├── storage
+│   │   ├── __init__.py
+│   │   └── minio_client.py
+│   └── __init__.py
+├── ingestion
+│   ├── chunking
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── config.py
+│   │   └── text_chunker.py
+│   ├── cleaning
+│   │   ├── __init__.py
+│   │   ├── duplicate_detector.py
+│   │   ├── header_footer_detector.py
+│   │   ├── hyphenation_corrector.py
+│   │   ├── line_reconstructor.py
+│   │   ├── table_normalizer.py
+│   │   └── text_cleaner.py
+│   ├── embeddings
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── config.py
+│   │   └── embedding_generator.py
+│   ├── loaders
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── docx_loader.py
+│   │   ├── pdf_loader.py
+│   │   └── txt_loader.py
+│   ├── parsers
+│   ├── __init__.py
+│   └── pipeline.py
+├── llm
+│   ├── prompts
+│   ├── client.py
+│   └── generation.py
+├── retrieval
+│   ├── context_builder.py
+│   ├── filters.py
+│   ├── reranker.py
+│   └── vector_search.py
+├── scripts
+│   └── test_document_upload.py
+├── tests
+│   ├── integration
+│   │   └── test_document_ingestion.py
+│   ├── test_chunk_repository
+│   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   └── test_chunk_repository.py
+│   ├── test_chunking
+│   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   └── test_text_chunker.py
+│   ├── test_cleaning
+│   │   ├── __init__.py
+│   │   └── test_text_cleaner.py
+│   ├── test_embeddings
+│   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   └── test_embedding_generator.py
+│   ├── test_ingestion
+│   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   └── test_pipeline.py
+│   ├── test_loaders
+│   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   ├── test_docx_loader.py
+│   │   ├── test_pdf_loader.py
+│   │   └── test_txt_loader.py
+│   ├── test_document_repository.py
+│   ├── test_document_service.py
+│   ├── test_minio_client.py
+│   ├── test_postgres_client.py
+│   └── test_real_embeddings.py
+├── worker
+│   ├── celery_app.py
+│   └── tasks.py
+├── .env.example
+├── .gitignore
+├── docker-compose.yml
+├── file-structure.txt
+├── Makefile
+├── project-structure.txt
+├── pyproject.toml
+└── README.md
