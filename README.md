@@ -354,7 +354,7 @@ mc --version
 ### 1. Clone the Repository
 
 ```bash
-git clone <YOUR_REPOSITORY_URL>
+git clone https://github.com/Hamid101101/documind-ai
 cd documind-ai
 ```
 
