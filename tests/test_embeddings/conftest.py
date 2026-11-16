@@ -22,9 +22,14 @@ class FakeEmbeddingModel:
         normalize_embeddings=True,
         show_progress_bar=False,
     ):
-        self.received_texts = list(sentences)
+        self.received_texts = (
+            [sentences] if isinstance(sentences, str) else list(sentences)
+        )
         self.received_batch_size = batch_size
         self.received_normalization = normalize_embeddings
+
+        if isinstance(sentences, str):
+            return np.ones(self.dimension, dtype=np.float32)
 
         return np.ones(
             (len(sentences), self.dimension),

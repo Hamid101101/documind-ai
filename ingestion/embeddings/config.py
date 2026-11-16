@@ -18,6 +18,7 @@ class EmbeddingConfig:
     normalize_embeddings: bool = True
     expected_dimension: int = 384
     document_prefix: str = "passage: "
+    query_prefix: str = "query: "
 
     def __post_init__(self) -> None:
         if not self.model_name.strip():

@@ -170,3 +170,53 @@ class ChunkRepository:
             with conn.cursor() as cursor:
                 cursor.execute(query, (document_id,))
                 return cursor.fetchone()["total"]
+
+
+    def search_similar(
+        self,
+        query_embedding: Sequence[float],
+        top_k: int = 5,
+        document_id: UUID | None = None,
+    ) -> list[dict[str, Any]]:
+        """Retrieve the most similar document chunks using cosine distance."""
+
+        if top_k <= 0:
+            raise ValueError("top_k must be greater than zero.")
+
+        vector = self._serialize_embedding(query_embedding)
+
+        query = """
+            SELECT
+                id,
+                document_id,
+                chunk_index,
+                content,
+                page_start,
+                page_end,
+                token_count,
+                metadata,
+                1 - (embedding <=> %s::vector) AS similarity,
+                created_at
+            FROM document_chunks
+            WHERE embedding IS NOT NULL
+        """
+
+        params = [vector]
+
+        if document_id is not None:
+            query += """
+                AND document_id = %s
+            """
+            params.append(document_id)
+
+        query += """
+            ORDER BY embedding <=> %s::vector ASC
+            LIMIT %s;
+        """
+
+        params.extend([vector, top_k])
+
+        with self.db.connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, tuple(params))
+                return cursor.fetchall()

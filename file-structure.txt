@@ -87,7 +87,8 @@ documind-ai/
 │   └── test_document_upload.py
 ├── tests
 │   ├── integration
-│   │   └── test_document_ingestion.py
+│   │   ├── test_document_ingestion.py
+│   │   └── test_vector_search.py
 │   ├── test_chunk_repository
 │   │   ├── __init__.py
 │   │   ├── conftest.py
