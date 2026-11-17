@@ -2,6 +2,11 @@
 import pytest
 
 from database.repositories.chunk_repository import ChunkRepository
+from retrieval.filters import RetrievalFilters
+
+from uuid import UUID
+
+from psycopg.types.json import Jsonb
 
 
 def test_create_many_inserts_all_chunks(
@@ -266,3 +271,206 @@ def test_search_similar_rejects_non_finite_embedding(
 
     with pytest.raises(ValueError, match="non-finite"):
         chunk_repository.search_similar(embedding)
+
+
+def test_search_similar_filters_by_document_ids(
+    chunk_repository,
+    fake_db,
+):
+    document_ids = [UUID("11111111-1111-1111-1111-111111111111")]
+
+    chunk_repository.search_similar(
+        query_embedding=[0.1] * 384,
+        filters=RetrievalFilters(document_ids=document_ids),
+    )
+
+    query = fake_db.cursor_instance.executed_query
+    params = fake_db.cursor_instance.executed_params
+
+    assert "c.document_id = ANY(%s)" in query
+    assert document_ids == params[1]
+
+
+def test_search_similar_filters_by_document_metadata(
+    chunk_repository,
+    fake_db,
+):
+    metadata = {"category": "research"}
+
+    chunk_repository.search_similar(
+        query_embedding=[0.1] * 384,
+        filters=RetrievalFilters(document_metadata=metadata),
+    )
+
+    query = fake_db.cursor_instance.executed_query
+    params = fake_db.cursor_instance.executed_params
+
+    assert "JOIN documents AS d" in query
+    assert "d.metadata @> %s::jsonb" in query
+    assert params[1].obj == metadata
+
+
+def test_search_similar_filters_by_chunk_metadata(
+    chunk_repository,
+    fake_db,
+):
+    metadata = {"section": "introduction"}
+
+    chunk_repository.search_similar(
+        query_embedding=[0.1] * 384,
+        filters=RetrievalFilters(chunk_metadata=metadata),
+    )
+
+    query = fake_db.cursor_instance.executed_query
+    params = fake_db.cursor_instance.executed_params
+
+    assert "c.metadata @> %s::jsonb" in query
+    assert params[1].obj == metadata
+
+
+def test_search_similar_combines_all_filters(
+    chunk_repository,
+    fake_db,
+):
+    document_ids = [UUID("11111111-1111-1111-1111-111111111111")]
+    document_metadata = {"category": "research"}
+    chunk_metadata = {"section": "introduction"}
+
+    chunk_repository.search_similar(
+        query_embedding=[0.1] * 384,
+        filters=RetrievalFilters(
+            document_ids=document_ids,
+            document_metadata=document_metadata,
+            chunk_metadata=chunk_metadata,
+        ),
+    )
+
+    query = fake_db.cursor_instance.executed_query
+    params = fake_db.cursor_instance.executed_params
+
+    assert "JOIN documents AS d" in query
+    assert "c.document_id = ANY(%s)" in query
+    assert "d.metadata @> %s::jsonb" in query
+    assert "c.metadata @> %s::jsonb" in query
+
+    assert params[1].obj == document_metadata
+    assert params[2] == document_ids
+    assert params[3].obj == chunk_metadata
+
+
+def test_search_similar_without_filters_searches_all_documents(
+    chunk_repository,
+    fake_db,
+):
+    chunk_repository.search_similar(
+        query_embedding=[0.1] * 384,
+    )
+
+    query = fake_db.cursor_instance.executed_query
+
+    assert "JOIN documents AS d" in query
+    assert "document_id = ANY" not in query
+    assert "metadata @>" not in query
+
+
+def test_search_keyword_returns_matching_chunks(
+    chunk_repository,
+    fake_db,
+):
+    fake_db.cursor_instance.fetchall_result = [
+        {"content": "PostgreSQL vector search", "keyword_score": 0.8},
+        {"content": "PostgreSQL database", "keyword_score": 0.5},
+    ]
+
+    result = chunk_repository.search_keyword(
+        query_text="PostgreSQL",
+        top_k=2,
+    )
+
+    assert len(result) == 2
+    assert result[0]["keyword_score"] > result[1]["keyword_score"]
+    assert fake_db.connection_count == 1
+
+
+def test_search_keyword_uses_full_text_search(
+    chunk_repository,
+    fake_db,
+):
+    chunk_repository.search_keyword("PostgreSQL vector search")
+
+    query = fake_db.cursor_instance.executed_query
+
+    assert "search_vector" in query
+    assert "@@" in query
+    assert "websearch_to_tsquery" in query
+    assert "ts_rank_cd" in query
+
+
+def test_search_keyword_orders_by_relevance(
+    chunk_repository,
+    fake_db,
+):
+    chunk_repository.search_keyword("PostgreSQL")
+
+    query = fake_db.cursor_instance.executed_query
+
+    assert "ORDER BY keyword_score DESC" in query
+    assert "LIMIT %s" in query
+
+
+def test_search_keyword_passes_correct_parameters(
+    chunk_repository,
+    fake_db,
+):
+    chunk_repository.search_keyword(
+        query_text="PostgreSQL vector search",
+        top_k=3,
+    )
+
+    params = fake_db.cursor_instance.executed_params
+
+    assert params == (
+        "PostgreSQL vector search",
+        "PostgreSQL vector search",
+        3,
+    )
+
+
+def test_search_keyword_applies_document_id_filter(
+    chunk_repository,
+    fake_db,
+    document_id,
+):
+    filters = RetrievalFilters(document_ids=[document_id])
+
+    chunk_repository.search_keyword(
+        query_text="PostgreSQL",
+        filters=filters,
+    )
+
+    query = fake_db.cursor_instance.executed_query
+    params = fake_db.cursor_instance.executed_params
+
+    assert "c.document_id = ANY(%s)" in query
+    assert params[2] == [document_id]
+
+
+@pytest.mark.parametrize("query_text", ["", "   ", "\n"])
+def test_search_keyword_rejects_empty_query(
+    chunk_repository,
+    query_text,
+):
+    with pytest.raises(ValueError, match="Query text"):
+        chunk_repository.search_keyword(query_text)
+
+
+@pytest.mark.parametrize("top_k", [0, -1])
+def test_search_keyword_rejects_invalid_top_k(
+    chunk_repository,
+    top_k,
+):
+    with pytest.raises(ValueError, match="top_k"):
+        chunk_repository.search_keyword(
+            query_text="PostgreSQL",
+            top_k=top_k,
+        )

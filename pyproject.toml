@@ -22,6 +22,7 @@ dependencies = [
     "sentencepiece",
     "sentence-transformers>=3.0.0",
     "requests",
+    "ollama",
 ]
 
 [project.optional-dependencies]
