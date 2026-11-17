@@ -7,6 +7,7 @@ from psycopg.types.json import Jsonb
 
 from infra.postgres.postgres_client import PostgreSQLClient
 from ingestion.chunking.base import DocumentChunk
+from retrieval.filters import RetrievalFilters
 
 
 class ChunkRepository:
@@ -170,3 +171,131 @@ class ChunkRepository:
             with conn.cursor() as cursor:
                 cursor.execute(query, (document_id,))
                 return cursor.fetchone()["total"]
+    
+    def search_similar(
+        self,
+        query_embedding: Sequence[float],
+        top_k: int = 5,
+        filters: RetrievalFilters | None = None,
+    ) -> list[dict[str, Any]]:
+        """Retrieve the most similar chunks with optional metadata filters."""
+
+        if top_k <= 0:
+            raise ValueError("top_k must be greater than zero.")
+
+        vector = self._serialize_embedding(query_embedding)
+        filters = filters or RetrievalFilters()
+
+        query = """
+            SELECT
+                c.id,
+                c.document_id,
+                d.filename AS document_filename,
+                c.chunk_index,
+                c.content,
+                c.page_start,
+                c.page_end,
+                c.token_count,
+                c.metadata,
+                1 - (c.embedding <=> %s::vector) AS similarity,
+                c.created_at
+            FROM document_chunks AS c
+            JOIN documents AS d
+                ON d.id = c.document_id
+        """
+
+        params = [vector]
+        conditions = ["c.embedding IS NOT NULL"]
+
+        if filters.document_metadata is not None:
+            conditions.append("d.metadata @> %s::jsonb")
+            params.append(Jsonb(filters.document_metadata))
+
+        if filters.document_ids is not None:
+            conditions.append("c.document_id = ANY(%s)")
+            params.append(filters.document_ids)
+
+        if filters.chunk_metadata is not None:
+            conditions.append("c.metadata @> %s::jsonb")
+            params.append(Jsonb(filters.chunk_metadata))
+
+        query += " WHERE " + " AND ".join(conditions)
+
+        query += """
+            ORDER BY c.embedding <=> %s::vector ASC
+            LIMIT %s;
+        """
+
+        params.extend([vector, top_k])
+
+        with self.db.connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, tuple(params))
+                return cursor.fetchall()
+
+
+    def search_keyword(
+        self,
+        query_text: str,
+        top_k: int = 5,
+        filters: RetrievalFilters | None = None,
+    ) -> list[dict[str, Any]]:
+        """Retrieve keyword-matching chunks with optional metadata filters."""
+
+        if not query_text or not query_text.strip():
+            raise ValueError("Query text cannot be empty.")
+
+        if top_k <= 0:
+            raise ValueError("top_k must be greater than zero.")
+
+        filters = filters or RetrievalFilters()
+
+        query = """
+            SELECT
+                c.id,
+                c.document_id,
+                d.filename AS document_filename,
+                c.chunk_index,
+                c.content,
+                c.page_start,
+                c.page_end,
+                c.token_count,
+                c.metadata,
+                ts_rank_cd(
+                    c.search_vector,
+                    websearch_to_tsquery('simple', %s)
+                ) AS keyword_score,
+                c.created_at
+            FROM document_chunks AS c
+            JOIN documents AS d
+                ON d.id = c.document_id
+            WHERE
+                c.search_vector @@ websearch_to_tsquery('simple', %s)
+        """
+
+        params: list[Any] = [query_text, query_text]
+
+        if filters.document_metadata is not None:
+            query += " AND d.metadata @> %s::jsonb"
+            params.append(Jsonb(filters.document_metadata))
+
+        if filters.document_ids is not None:
+            query += " AND c.document_id = ANY(%s)"
+            params.append(filters.document_ids)
+
+        if filters.chunk_metadata is not None:
+            query += " AND c.metadata @> %s::jsonb"
+            params.append(Jsonb(filters.chunk_metadata))
+
+        query += """
+            ORDER BY keyword_score DESC, c.id ASC
+            LIMIT %s;
+        """
+
+        params.append(top_k)
+
+        with self.db.connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, tuple(params))
+                return cursor.fetchall()
+

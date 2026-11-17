@@ -1,0 +1,17 @@
+
+Answer the user's question using the document context provided below.
+
+DOCUMENT CONTEXT:
+{context}
+
+USER QUESTION:
+{question}
+
+INSTRUCTIONS:
+- Answer the question directly.
+- Use only information supported by the document context.
+- Include relevant source references when available.
+- If the answer cannot be found in the context, say so explicitly.
+- Do not repeat the entire context in your answer.
+
+ANSWER:

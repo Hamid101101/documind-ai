@@ -78,3 +78,31 @@ class EmbeddingGenerator(BaseEmbedder):
             raise ValueError("Generated embeddings contain invalid values.")
 
         return embeddings.tolist()
+
+    def embed_query(self, query: str) -> list[float]:
+        if not query or not query.strip():
+            raise ValueError("Query cannot be empty.")
+
+        text = f"{self.config.query_prefix}{query.strip()}"
+
+        embedding = self.model.encode(
+            text,
+            convert_to_numpy=True,
+            normalize_embeddings=self.config.normalize_embeddings,
+            show_progress_bar=False,
+        )
+
+        embedding = np.asarray(embedding, dtype=np.float32)
+
+        expected_shape = (self.config.expected_dimension,)
+
+        if embedding.shape != expected_shape:
+            raise ValueError(
+                f"Expected query embedding with shape {expected_shape}, "
+                f"received {embedding.shape}."
+            )
+
+        if not np.isfinite(embedding).all():
+            raise ValueError("Generated query embedding contains invalid values.")
+
+        return embedding.tolist()

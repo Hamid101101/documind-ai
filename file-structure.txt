@@ -13,9 +13,11 @@ documind-ai/
 │       ├── dependencies
 │       ├── schemas
 │       │   ├── __init__.py
+│       │   ├── chat.py
 │       │   └── document.py
 │       ├── services
 │       │   ├── __init__.py
+│       │   ├── chat_service.py
 │       │   └── document_service.py
 │       └── main.py
 ├── build
@@ -23,7 +25,8 @@ documind-ai/
 ├── database
 │   ├── migrations
 │   │   ├── 001_enable_pgvector.sql
-│   │   └── 002_create_document_tables.sql
+│   │   ├── 002_create_document_tables.sql
+│   │   └── 003_add_full_text_search.sql
 │   ├── models
 │   ├── repositories
 │   │   ├── __init__.py
@@ -75,18 +78,27 @@ documind-ai/
 │   ├── __init__.py
 │   └── pipeline.py
 ├── llm
+│   ├── prompts
+│   │   ├── rag_prompt.txt
+│   │   └── system_prompt.txt
 │   ├── client.py
+│   ├── config.py
 │   └── generation.py
 ├── retrieval
+│   ├── config.py
 │   ├── context_builder.py
 │   ├── filters.py
 │   ├── reranker.py
 │   └── vector_search.py
 ├── scripts
+│   ├── cv_chunks.txt
+│   ├── test_chat_endpoint.py
 │   └── test_document_upload.py
 ├── tests
 │   ├── integration
-│   │   └── test_document_ingestion.py
+│   │   ├── __init__.py
+│   │   ├── test_document_ingestion.py
+│   │   └── test_vector_search.py
 │   ├── test_chunk_repository
 │   │   ├── __init__.py
 │   │   ├── conftest.py
@@ -107,6 +119,10 @@ documind-ai/
 │   │   ├── conftest.py
 │   │   └── test_pipeline.py
 │   ├── test_llm
+│   │   ├── __init__.py
+│   │   ├── test_client.py
+│   │   ├── test_config.py
+│   │   └── test_generation.py
 │   ├── test_loaders
 │   │   ├── __init__.py
 │   │   ├── conftest.py
@@ -114,6 +130,12 @@ documind-ai/
 │   │   ├── test_pdf_loader.py
 │   │   └── test_txt_loader.py
 │   ├── test_retrieval
+│   │   ├── __init__.py
+│   │   ├── test_config.py
+│   │   ├── test_context_builder.py
+│   │   ├── test_filters.py
+│   │   └── test_vector_search.py
+│   ├── __init__.py
 │   ├── test_document_repository.py
 │   ├── test_document_service.py
 │   ├── test_minio_client.py

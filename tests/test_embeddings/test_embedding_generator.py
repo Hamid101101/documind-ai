@@ -124,3 +124,27 @@ def test_model_is_not_loaded_during_initialization(embedding_config):
     embedder = EmbeddingGenerator(config=embedding_config)
 
     assert embedder._model is None
+def test_embed_query_returns_384_dimensional_embedding(embedder):
+    result = embedder.embed_query("What is machine learning?")
+
+    assert isinstance(result, list)
+    assert len(result) == 384
+    assert all(isinstance(value, float) for value in result)
+
+
+def test_embed_query_uses_query_prefix(embedder, fake_model):
+    embedder.embed_query("What is machine learning?")
+
+    assert fake_model.received_texts == [
+        "query: What is machine learning?"
+    ]
+
+
+def test_embed_query_rejects_empty_query(embedder):
+    with pytest.raises(ValueError, match="Query cannot be empty"):
+        embedder.embed_query("")
+
+
+def test_embed_query_rejects_whitespace_query(embedder):
+    with pytest.raises(ValueError, match="Query cannot be empty"):
+        embedder.embed_query("   ")
