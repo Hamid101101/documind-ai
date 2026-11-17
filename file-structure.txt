@@ -75,7 +75,6 @@ documind-ai/
 │   ├── __init__.py
 │   └── pipeline.py
 ├── llm
-│   ├── prompts
 │   ├── client.py
 │   └── generation.py
 ├── retrieval
@@ -107,12 +106,14 @@ documind-ai/
 │   │   ├── __init__.py
 │   │   ├── conftest.py
 │   │   └── test_pipeline.py
+│   ├── test_llm
 │   ├── test_loaders
 │   │   ├── __init__.py
 │   │   ├── conftest.py
 │   │   ├── test_docx_loader.py
 │   │   ├── test_pdf_loader.py
 │   │   └── test_txt_loader.py
+│   ├── test_retrieval
 │   ├── test_document_repository.py
 │   ├── test_document_service.py
 │   ├── test_minio_client.py
