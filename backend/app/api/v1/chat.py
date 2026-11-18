@@ -37,6 +37,7 @@ async def chat(
     try:
         result = await service.chat(
             question=payload.question,
+            conversation_id=payload.conversation_id,
             filters=payload.filters,
             top_k=payload.top_k,
             max_tokens=payload.max_tokens,

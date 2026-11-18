@@ -1,6 +1,7 @@
 
+from collections.abc import Sequence
 from math import isfinite
-from typing import Any, Sequence
+from typing import Any
 from uuid import UUID
 
 from psycopg.types.json import Jsonb
@@ -32,7 +33,7 @@ class ChunkRepository:
 
         for value in embedding:
             if isinstance(value, bool):
-                raise ValueError("Embedding values must be numeric.")
+                raise TypeError("Embedding values must be numeric.")
 
             numeric_value = float(value)
 
@@ -112,10 +113,9 @@ class ChunkRepository:
             );
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.executemany(query, params)
-                return cursor.rowcount
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.executemany(query, params)
+            return cursor.rowcount
 
     def get_by_document_id(
         self,
@@ -140,10 +140,9 @@ class ChunkRepository:
             ORDER BY chunk_index ASC;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (document_id,))
-                return cursor.fetchall()
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, (document_id,))
+            return cursor.fetchall()
 
     def delete_by_document_id(self, document_id: UUID) -> int:
         """Delete all chunks belonging to a document."""
@@ -153,10 +152,9 @@ class ChunkRepository:
             WHERE document_id = %s;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (document_id,))
-                return cursor.rowcount
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, (document_id,))
+            return cursor.rowcount
 
     def count_by_document_id(self, document_id: UUID) -> int:
         """Return the number of chunks belonging to a document."""
@@ -167,10 +165,9 @@ class ChunkRepository:
             WHERE document_id = %s;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (document_id,))
-                return cursor.fetchone()["total"]
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, (document_id,))
+            return cursor.fetchone()["total"]
     
     def search_similar(
         self,
@@ -228,10 +225,9 @@ class ChunkRepository:
 
         params.extend([vector, top_k])
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, tuple(params))
-                return cursor.fetchall()
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, tuple(params))
+            return cursor.fetchall()
 
 
     def search_keyword(
@@ -294,8 +290,7 @@ class ChunkRepository:
 
         params.append(top_k)
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, tuple(params))
-                return cursor.fetchall()
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, tuple(params))
+            return cursor.fetchall()
 
