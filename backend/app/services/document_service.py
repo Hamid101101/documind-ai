@@ -2,12 +2,11 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, BinaryIO
-from uuid import uuid4
+from typing import Any, BinaryIO, ClassVar
+from uuid import UUID, uuid4
 
 from database.repositories.document_repository import DocumentRepository
 from infra.storage.minio_client import MinIOClient
-
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ class DocumentValidationError(ValueError):
 class DocumentService:
     """Coordinates document storage and metadata persistence."""
 
-    ALLOWED_MIME_TYPES = {
+    ALLOWED_MIME_TYPES: ClassVar[dict[str, str]] = {
         ".pdf": "application/pdf",
         ".docx": (
             "application/vnd.openxmlformats-officedocument."
@@ -40,7 +39,7 @@ class DocumentService:
         self.max_upload_size_bytes = (
             max_upload_size_bytes
             if max_upload_size_bytes is not None
-            else int(os.getenv("MAX_UPLOAD_SIZE_BYTES", 50 * 1024 * 1024))
+            else int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(50 * 1024 * 1024)))
         )
 
     @staticmethod
@@ -194,3 +193,94 @@ class DocumentService:
                 document_id,
             )
             raise
+
+    def get_document(self, document_id: UUID) -> dict[str, Any] | None:
+        """Retrieve a document by its ID."""
+
+        return self.repository.get_by_id(document_id)
+
+
+    def list_documents(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        """List documents with pagination and optional status filtering."""
+
+        return self.repository.list_documents(
+            page=page,
+            page_size=page_size,
+            status=status,
+        )
+
+    def update_document(
+        self,
+        document_id: UUID,
+        *,
+        filename: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        """Update document information."""
+
+        existing_document = self.repository.get_by_id(document_id)
+
+        if existing_document is None:
+            return None
+
+        if filename is not None:
+            filename = self._sanitize_filename(filename)
+
+        if filename is None and metadata is None:
+            raise DocumentValidationError(
+                "At least one field must be provided."
+            )
+
+        return self.repository.update_document(
+            document_id,
+            filename=filename,
+            metadata=metadata,
+        )
+
+    def delete_document(self, document_id: UUID) -> bool:
+        """Delete a document and its stored file."""
+
+        document = self.repository.get_by_id(document_id)
+
+        if document is None:
+            return False
+
+        object_key = document["storage_object_key"]
+
+        # Delete the original file from MinIO.
+        self.minio.delete_file(object_key)
+
+        # Delete the database record and associated chunks.
+        deleted = self.repository.delete_record(document_id)
+
+        if not deleted:
+            raise RuntimeError(
+                f"Failed to delete document record: {document_id}"
+            )
+
+        logger.info("Document %s deleted successfully.", document_id)
+
+        return True
+
+    def open_document_stream(
+        self,
+        document_id: UUID,
+    ) -> tuple[dict[str, Any], dict[str, Any]] | None:
+        """Retrieve document metadata and open its MinIO streaming response."""
+
+        document = self.repository.get_by_id(document_id)
+
+        if document is None:
+            return None
+
+        response = self.minio.get_object_stream(
+            document["storage_object_key"],
+        )
+
+        return document, response

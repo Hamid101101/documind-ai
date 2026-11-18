@@ -58,3 +58,6 @@ exclude = [
 markers = [
     "integration: tests requiring real infrastructure services",
 ]
+
+[tool.ruff.lint]
+ignore = ["B008"]

@@ -233,3 +233,46 @@ class DocumentRepository:
                 (chunk_count, page_count, embedding_model, document_id),
             )
             return cursor.fetchone()
+
+
+    def update_document(
+        self,
+        document_id: UUID,
+        *,
+        filename: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        """Update document information and return the updated record."""
+
+        updates = {}
+        params = []
+
+        if filename is not None:
+            updates["filename"] = "%s"
+            params.append(filename)
+
+        if metadata is not None:
+            updates["metadata"] = "%s"
+            params.append(Jsonb(metadata))
+
+        if not updates:
+            raise ValueError("At least one field must be provided.")
+
+        set_clause = ", ".join(
+            f"{column} = {placeholder}"
+            for column, placeholder in updates.items()
+        )
+
+        query = f"""
+            UPDATE documents
+            SET {set_clause},
+                updated_at = NOW()
+            WHERE id = %s
+            RETURNING *;
+        """
+
+        params.append(document_id)
+
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, params)
+            return cursor.fetchone()
