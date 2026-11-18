@@ -42,8 +42,13 @@ documind-ai/
 ├── docs
 ├── evaluation
 ├── frontend
+│   ├── pages
+│   │   ├── __init__.py
+│   │   ├── chat.py
+│   │   └── documents.py
 │   ├── __init__.py
 │   ├── api_client.py
+│   ├── common.py
 │   └── streamlit_app.py
 ├── infra
 │   ├── minio

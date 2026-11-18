@@ -166,3 +166,118 @@ class APIClient:
 
     def close(self) -> None:
         self.session.close()
+
+
+    def list_documents(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        status_filter: str | None = None,
+    ) -> dict[str, Any]:
+        """Retrieve documents with pagination and optional status filtering."""
+
+        params: dict[str, Any] = {
+            "page": page,
+            "page_size": page_size,
+        }
+
+        if status_filter is not None:
+            params["status_filter"] = status_filter
+
+        return self._request(
+            "GET",
+            "/api/v1/documents/",
+            params=params,
+        )
+
+    def get_document(
+        self,
+        document_id: UUID | str,
+    ) -> dict[str, Any]:
+        """Retrieve a document by its ID."""
+
+        return self._request(
+            "GET",
+            f"/api/v1/documents/{document_id}",
+        )
+
+    def update_document(
+        self,
+        document_id: UUID | str,
+        filename: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Update a document's filename or metadata."""
+
+        payload: dict[str, Any] = {}
+
+        if filename is not None:
+            payload["filename"] = filename
+
+        if metadata is not None:
+            payload["metadata"] = metadata
+
+        if not payload:
+            raise ValueError("At least one field must be provided.")
+
+        return self._request(
+            "PATCH",
+            f"/api/v1/documents/{document_id}",
+            json=payload,
+        )
+
+    def delete_document(
+        self,
+        document_id: UUID | str,
+    ) -> None:
+        """Delete a document and its associated data."""
+
+        self._request(
+            "DELETE",
+            f"/api/v1/documents/{document_id}",
+        )
+
+    def download_document(
+        self,
+        document_id: UUID | str,
+        destination: str,
+    ) -> None:
+        """Download a document progressively to a local file."""
+
+        url = f"{self.base_url}/api/v1/documents/{document_id}/download"
+
+        try:
+            with self.session.get(
+                url,
+                stream=True,
+                timeout=self.timeout,
+            ) as response:
+                response.raise_for_status()
+
+                with open(destination, "wb") as file:
+                    for chunk in response.iter_content(
+                        chunk_size=1024 * 1024
+                    ):
+                        if chunk:
+                            file.write(chunk)
+
+        except requests.HTTPError as exc:
+            try:
+                detail = response.json().get("detail", response.text)
+            except ValueError:
+                detail = response.text
+
+            raise APIClientError(
+                f"API error ({response.status_code}): {detail}"
+            ) from exc
+
+        except requests.RequestException as exc:
+            raise APIClientError(
+                f"Could not download document: {exc}"
+            ) from exc
+
+        except OSError as exc:
+            raise APIClientError(
+                f"Could not save downloaded document: {exc}"
+            ) from exc
+
