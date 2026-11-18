@@ -23,6 +23,8 @@ dependencies = [
     "sentence-transformers>=3.0.0",
     "requests",
     "ollama",
+    "streamlit",
+
 ]
 
 [project.optional-dependencies]
