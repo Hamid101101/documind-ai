@@ -53,10 +53,9 @@ class DocumentRepository:
             Jsonb(metadata or {}),
         )
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                return cursor.fetchone()
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, params)
+            return cursor.fetchone()
 
     def get_by_id(self, document_id: UUID) -> dict[str, Any] | None:
         """Retrieve a document by UUID."""
@@ -67,10 +66,9 @@ class DocumentRepository:
             WHERE id = %s;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (document_id,))
-                return cursor.fetchone()
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, (document_id,))
+            return cursor.fetchone()
 
     def get_by_object_key(
         self,
@@ -86,13 +84,12 @@ class DocumentRepository:
               AND storage_object_key = %s;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    query,
-                    (storage_bucket, storage_object_key),
-                )
-                return cursor.fetchone()
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(
+                query,
+                (storage_bucket, storage_object_key),
+            )
+            return cursor.fetchone()
 
     def list_documents(
         self,
@@ -132,16 +129,15 @@ class DocumentRepository:
             LIMIT %s OFFSET %s;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(count_query, params)
-                total = cursor.fetchone()["total"]
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(count_query, params)
+            total = cursor.fetchone()["total"]
 
-                cursor.execute(
-                    documents_query,
-                    (*params, page_size, offset),
-                )
-                documents = cursor.fetchall()
+            cursor.execute(
+                documents_query,
+                (*params, page_size, offset),
+            )
+            documents = cursor.fetchall()
 
         return {
             "documents": documents,
@@ -168,13 +164,12 @@ class DocumentRepository:
             RETURNING *;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    query,
-                    (status, error_message, document_id),
-                )
-                return cursor.fetchone()
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(
+                query,
+                (status, error_message, document_id),
+            )
+            return cursor.fetchone()
 
     def delete_record(self, document_id: UUID) -> bool:
         """Delete a document record and its associated chunks."""
@@ -185,10 +180,9 @@ class DocumentRepository:
             RETURNING id;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (document_id,))
-                return cursor.fetchone() is not None
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, (document_id,))
+            return cursor.fetchone() is not None
 
     def mark_processing(self, document_id: UUID) -> dict[str, Any] | None:
         """Mark a document as processing."""
@@ -205,10 +199,9 @@ class DocumentRepository:
             RETURNING *;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (document_id,))
-                return cursor.fetchone()
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query, (document_id,))
+            return cursor.fetchone()
 
     def mark_completed(
         self,
@@ -234,10 +227,9 @@ class DocumentRepository:
             RETURNING *;
         """
 
-        with self.db.connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    query,
-                    (chunk_count, page_count, embedding_model, document_id),
-                )
-                return cursor.fetchone()
+        with self.db.connection() as conn, conn.cursor() as cursor:
+            cursor.execute(
+                query,
+                (chunk_count, page_count, embedding_model, document_id),
+            )
+            return cursor.fetchone()

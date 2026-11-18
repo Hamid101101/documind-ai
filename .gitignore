@@ -17,3 +17,4 @@ documind_ai.egg-info
 .vscode/
 .vscode
 docs/DOCUMIND_TODO.md
+scripts/*.txt

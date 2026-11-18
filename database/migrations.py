@@ -5,13 +5,11 @@ import os
 import re
 import sys
 import time
-
 from pathlib import Path
 
 import psycopg
-from psycopg.rows import dict_row
 from dotenv import load_dotenv
-
+from psycopg.rows import dict_row
 
 # --------------------------------------------------
 # Configuration

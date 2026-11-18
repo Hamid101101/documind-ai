@@ -49,6 +49,7 @@ class GenerationService:
         self,
         question: str,
         context_result: dict[str, Any],
+        conversation_history: list[dict[str, str]] | None = None,
     ) -> dict[str, Any]:
         """Generate a grounded answer from retrieved document context."""
 
@@ -90,6 +91,7 @@ class GenerationService:
         response = await self.client.generate(
             prompt=prompt,
             system_prompt=self.system_prompt,
+            conversation_history=conversation_history,
         )
 
         return {

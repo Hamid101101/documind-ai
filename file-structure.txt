@@ -4,6 +4,7 @@ documind-ai/
 │       ├── api
 │       │   └── v1
 │       │       ├── chat.py
+│       │       ├── conversations.py
 │       │       ├── documents.py
 │       │       ├── health.py
 │       │       └── knowledge_bases.py
@@ -14,10 +15,12 @@ documind-ai/
 │       ├── schemas
 │       │   ├── __init__.py
 │       │   ├── chat.py
+│       │   ├── conversation.py
 │       │   └── document.py
 │       ├── services
 │       │   ├── __init__.py
 │       │   ├── chat_service.py
+│       │   ├── conversation_service.py
 │       │   └── document_service.py
 │       └── main.py
 ├── build
@@ -26,12 +29,15 @@ documind-ai/
 │   ├── migrations
 │   │   ├── 001_enable_pgvector.sql
 │   │   ├── 002_create_document_tables.sql
-│   │   └── 003_add_full_text_search.sql
+│   │   ├── 003_add_full_text_search.sql
+│   │   └── 004_create_conversation_tables.sql
 │   ├── models
 │   ├── repositories
 │   │   ├── __init__.py
 │   │   ├── chunk_repository.py
-│   │   └── document_repository.py
+│   │   ├── conversation_repository.py
+│   │   ├── document_repository.py
+│   │   └── message_repository.py
 │   └── migrations.py
 ├── docs
 ├── evaluation
@@ -43,6 +49,7 @@ documind-ai/
 │   │   │   └── documind-storage-policy.json
 │   │   └── init.sh
 │   ├── postgres
+│   │   ├── init
 │   │   ├── __init__.py
 │   │   └── postgres_client.py
 │   ├── storage
@@ -91,7 +98,6 @@ documind-ai/
 │   ├── reranker.py
 │   └── vector_search.py
 ├── scripts
-│   ├── cv_chunks.txt
 │   ├── test_chat_endpoint.py
 │   └── test_document_upload.py
 ├── tests

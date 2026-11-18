@@ -24,6 +24,7 @@ class OllamaClient:
         self,
         prompt: str,
         system_prompt: str | None = None,
+        conversation_history: list[dict[str, str]] | None = None,
     ) -> dict[str, Any]:
         """Generate a response using the configured Ollama model."""
 
@@ -35,9 +36,25 @@ class OllamaClient:
         if system_prompt is not None:
             if not system_prompt.strip():
                 raise ValueError("System prompt cannot be empty.")
+
             messages.append({
                 "role": "system",
                 "content": system_prompt,
+            })
+
+        for message in conversation_history or []:
+            role = message.get("role")
+            content = message.get("content")
+
+            if role not in {"user", "assistant"}:
+                raise ValueError("Conversation history contains an invalid role.")
+
+            if not isinstance(content, str) or not content.strip():
+                raise ValueError("Conversation history contains empty content.")
+
+            messages.append({
+                "role": role,
+                "content": content,
             })
 
         messages.append({
