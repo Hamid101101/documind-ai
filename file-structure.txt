@@ -42,6 +42,13 @@ documind-ai/
 ├── docs
 ├── evaluation
 ├── frontend
+│   ├── pages
+│   │   ├── __init__.py
+│   │   ├── chat.py
+│   │   └── documents.py
+│   ├── __init__.py
+│   ├── api_client.py
+│   ├── common.py
 │   └── streamlit_app.py
 ├── infra
 │   ├── minio
@@ -98,6 +105,7 @@ documind-ai/
 │   ├── reranker.py
 │   └── vector_search.py
 ├── scripts
+│   ├── test_api_client.py
 │   ├── test_chat_endpoint.py
 │   └── test_document_upload.py
 ├── tests

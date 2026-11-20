@@ -23,6 +23,8 @@ dependencies = [
     "sentence-transformers>=3.0.0",
     "requests",
     "ollama",
+    "streamlit",
+
 ]
 
 [project.optional-dependencies]
@@ -56,3 +58,6 @@ exclude = [
 markers = [
     "integration: tests requiring real infrastructure services",
 ]
+
+[tool.ruff.lint]
+ignore = ["B008"]

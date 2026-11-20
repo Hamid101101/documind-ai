@@ -1,17 +1,14 @@
 
+import hashlib
 import logging
 import os
-
 from pathlib import Path
 from typing import BinaryIO
 
 import boto3
-
 from botocore.client import Config
 from botocore.exceptions import BotoCoreError, ClientError
 from dotenv import load_dotenv
-import hashlib
-
 
 # Project configuration
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -161,6 +158,27 @@ class MinIOClient:
 
         except (ClientError, BotoCoreError):
             logger.exception("Failed to download '%s'.", object_key)
+            raise
+
+    def get_object_stream(self, object_key: str):
+        """Retrieve an object as a streaming response from MinIO."""
+        self._validate_object_key(object_key)
+
+        try:
+            response = self.client.get_object(
+                Bucket=self.bucket,
+                Key=object_key,
+            )
+
+            logger.info("Opened streaming response for '%s'.", object_key)
+
+            return response
+
+        except (ClientError, BotoCoreError):
+            logger.exception(
+                "Failed to open streaming response for '%s'.",
+                object_key,
+            )
             raise
 
     def delete_file(self, object_key: str) -> None:
