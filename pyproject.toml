@@ -24,7 +24,7 @@ dependencies = [
     "requests",
     "ollama",
     "streamlit",
-
+    "qdrant-client",
 ]
 
 [project.optional-dependencies]

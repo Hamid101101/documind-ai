@@ -84,6 +84,7 @@ class VectorSearch:
             max_tokens=max_tokens,
         )
 
+
     def _fuse_results(
         self,
         semantic_results: list[dict[str, Any]],
@@ -95,7 +96,12 @@ class VectorSearch:
         fused_results: dict[Any, dict[str, Any]] = {}
         rrf_k = self.config.rrf_k
 
-        for results in (semantic_results, keyword_results):
+        result_groups = (
+            ("semantic", semantic_results),
+            ("keyword", keyword_results),
+        )
+
+        for source, results in result_groups:
             for rank, result in enumerate(results, start=1):
                 chunk_id = result["id"]
                 rrf_score = 1.0 / (rrf_k + rank)
@@ -103,10 +109,20 @@ class VectorSearch:
                 if chunk_id not in fused_results:
                     fused_results[chunk_id] = {
                         **result,
-                        "rrf_score": rrf_score,
+                        "similarity": None,
+                        "keyword_score": None,
+                        "rrf_score": 0.0,
                     }
-                else:
-                    fused_results[chunk_id]["rrf_score"] += rrf_score
+
+                fused_result = fused_results[chunk_id]
+
+                if source == "semantic":
+                    fused_result["similarity"] = result["similarity"]
+
+                elif source == "keyword":
+                    fused_result["keyword_score"] = result["keyword_score"]
+
+                fused_result["rrf_score"] += rrf_score
 
         ranked_results = sorted(
             fused_results.values(),

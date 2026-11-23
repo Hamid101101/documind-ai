@@ -14,7 +14,7 @@ from retrieval.filters import RetrievalFilters
 class ChunkRepository:
     """Repository for document chunks and their pgvector embeddings."""
 
-    EMBEDDING_DIMENSION = 384
+    EMBEDDING_DIMENSION = 768
 
     def __init__(self, db: PostgreSQLClient | None = None):
         self.db = db or PostgreSQLClient()

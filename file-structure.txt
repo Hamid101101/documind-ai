@@ -30,7 +30,8 @@ documind-ai/
 │   │   ├── 001_enable_pgvector.sql
 │   │   ├── 002_create_document_tables.sql
 │   │   ├── 003_add_full_text_search.sql
-│   │   └── 004_create_conversation_tables.sql
+│   │   ├── 004_create_conversation_tables.sql
+│   │   └── 005_update_embedding_dimensions.sql
 │   ├── models
 │   ├── repositories
 │   │   ├── __init__.py
@@ -41,6 +42,40 @@ documind-ai/
 │   └── migrations.py
 ├── docs
 ├── evaluation
+│   ├── datasets
+│   ├── ingestion
+│   │   ├── __init__.py
+│   │   ├── ingest_qasper.py
+│   │   └── load_scifact.py
+│   ├── metrics
+│   │   ├── __init__.py
+│   │   └── retrieval_metrics.py
+│   ├── reports
+│   ├── retrieval
+│   │   ├── __init__.py
+│   │   └── evaluator.py
+│   ├── scripts
+│   │   ├── __init__.py
+│   │   ├── analyze_chunk_coverage.py
+│   │   ├── build_retrieval_ground_truth.py
+│   │   ├── compare_vector_databases.py
+│   │   ├── diagnose_similarity_scores.py
+│   │   ├── embed_qasper_documents.py
+│   │   ├── evaluate_qasper_documents.py
+│   │   ├── evaluate_retrieval.py
+│   │   ├── inspect_scifact.py
+│   │   ├── migrate_qasper_to_qdrant.py
+│   │   ├── reembed_qasper.py
+│   │   ├── run_scifact_experiment_a.py
+│   │   ├── run_scifact_experiment_b.py
+│   │   ├── test_scifact_loader.py
+│   │   ├── validate_chunk_reconstruction.py
+│   │   ├── validate_evidence_matching.py
+│   │   └── validate_scifact.py
+│   ├── tests
+│   │   ├── __init__.py
+│   │   └── test_retrieval_metrics.py
+│   └── __init__.py
 ├── frontend
 │   ├── pages
 │   │   ├── __init__.py

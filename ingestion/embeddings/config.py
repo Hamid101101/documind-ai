@@ -16,7 +16,7 @@ class EmbeddingConfig:
     batch_size: int = 32
     device: str = "auto"
     normalize_embeddings: bool = True
-    expected_dimension: int = 384
+    expected_dimension: int = 768
     document_prefix: str = "passage: "
     query_prefix: str = "query: "
 

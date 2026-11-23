@@ -18,3 +18,6 @@ documind_ai.egg-info
 .vscode
 docs/DOCUMIND_TODO.md
 scripts/*.txt
+evaluation/datasets/*
+evaluation/datasets/processed/*.json
+evaluation/reports/*

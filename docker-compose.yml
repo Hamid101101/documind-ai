@@ -55,6 +55,18 @@ services:
       timeout: 5s
       retries: 5
 
+  
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: documind-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+
 
 
 volumes:
@@ -66,3 +78,6 @@ volumes:
 
   documind_redis_data:
     name: documind_redis_data
+
+  qdrant_data:
+    name: documind_qdrant_data
